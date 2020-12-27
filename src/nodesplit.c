@@ -48,7 +48,7 @@ nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
     nleft = 0;
     nright = 0;
 
-    if (rp.numcat[pvar] > 0) {  /* categorical primary variable */
+    if (rp.variable_types[pvar] > 0) {  /* categorical primary variable */
 	index = tsplit->csplit;
 	for (i = n1; i < n2; i++) {
 	    j = sorts[pvar][i];
@@ -108,7 +108,7 @@ nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
 		    continue;
 		/* surrogate not missing - process it */
 
-		if (rp.numcat[var] > 0) {       /* categorical surrogate */
+		if (rp.variable_types[var] > 0) {       /* categorical surrogate */
 		    index = tsplit->csplit;
 		    k = (int) xdata[var][j];    /* the value of the surrogate  */
 		    /*
@@ -214,7 +214,7 @@ nodesplit(pNode me, int nodenum, int n1, int n2, int *nnleft, int *nnright)
      *   portion of "sorts" would remain unchanged.  It's not worth
      *   the bother of checking, however.
      */
-    for (k = 0; k < rp.nvar; k++) {
+    for (k = 0; k < rp.predictor_count; k++) {
 	sindex = rp.sorts[k];   /* point to variable k */
 	i1 = n1;
 	i2 = i1 + nleft;

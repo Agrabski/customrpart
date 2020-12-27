@@ -82,7 +82,7 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 	* restore rp.sorts, with the data for this run at the top
 	* this requires one pass per variable
 	*/
-	for (j = 0; j < rp.nvar; j++) {
+	for (j = 0; j < rp.predictor_count; j++) {
 	    k = 0;
 	    for (i = 0; i < rp.n; i++) {
 		ii = savesort[j * rp.n + i];

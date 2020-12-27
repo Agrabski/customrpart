@@ -95,10 +95,10 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
     rp.min_node = (int) dptr[1];
     rp.min_split = (int) dptr[0];
     rp.complexity = dptr[2];
-    rp.maxpri = (int) dptr[3] + 1;      /* max primary splits = max
+    rp.max_primary_splits = (int) dptr[3] + 1;      /* max primary splits = max
 					 * competitors + 1 */
-    if (rp.maxpri < 1)
-	rp.maxpri = 1;
+    if (rp.max_primary_splits < 1)
+	rp.max_primary_splits = 1;
     rp.maxsur = (int) dptr[4];
     rp.usesurrogate = (int) dptr[5];
     rp.sur_agree = (int) dptr[6];
@@ -106,11 +106,11 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
     rp.n = nrows(xmat2);
     n = rp.n;                   /* I get tired of typing "rp.n" 100 times
 				 * below */
-    rp.nvar = ncols(xmat2);
-    rp.numcat = INTEGER(ncat2);
+    rp.predictor_count = ncols(xmat2);
+    rp.variable_types = INTEGER(ncat2);
     rp.wt = wt;
     rp.iscale = 0.0;
-    rp.vcost = REAL(cost2);
+    rp.variable_cost = REAL(cost2);
     rp.num_resp = asInteger(nresp2);
 
     /*
@@ -119,8 +119,8 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
      *   y is in row major order
      */
     dptr = REAL(xmat2);
-    rp.xdata = (double **) ALLOC(rp.nvar, sizeof(double *));
-    for (i = 0; i < rp.nvar; i++) {
+    rp.xdata = (double **) ALLOC(rp.predictor_count, sizeof(double *));
+    for (i = 0; i < rp.predictor_count; i++) {
 	rp.xdata[i] = dptr;
 	dptr += n;
     }
@@ -144,10 +144,10 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
      *   This sort is "once and for all".
      * I don't have to sort the categoricals.
      */
-    rp.sorts = (int **) ALLOC(rp.nvar, sizeof(int *));
-    rp.sorts[0] = (int *) ALLOC(n * rp.nvar, sizeof(int));
+    rp.sorts = (int **) ALLOC(rp.predictor_count, sizeof(int *));
+    rp.sorts[0] = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
     maxcat = 0;
-    for (i = 0; i < rp.nvar; i++) {
+    for (i = 0; i < rp.predictor_count; i++) {
 	rp.sorts[i] = rp.sorts[0] + i * n;
 	for (k = 0; k < n; k++) {
 	    if (!R_FINITE(rp.xdata[i][k])) {
@@ -169,8 +169,8 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
     /*
      * save away a copy of the rp.sorts
      */
-    savesort = (int *) ALLOC(n * rp.nvar, sizeof(int));
-    memcpy(savesort, rp.sorts[0], n * rp.nvar * sizeof(int));
+    savesort = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
+    memcpy(savesort, rp.sorts[0], n * rp.predictor_count * sizeof(int));
 
     /*
      * And now the last of my scratch space
@@ -223,7 +223,7 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 	 * restore rp.sorts, with the data for this run at the top
 	 * this requires one pass per variable
 	 */
-	for (j = 0; j < rp.nvar; j++) {
+	for (j = 0; j < rp.predictor_count; j++) {
 	    k = 0;
 	    for (i = 0; i < rp.n; i++) {
 		ii = savesort[j * n + i];       /* walk through the variables

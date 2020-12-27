@@ -37,6 +37,8 @@
 #define EXTERN extern
 #endif
 
+static const int CONTINIOUS_VARIABLE = 0;
+
 /* As a sop to S, I need to keep the total number of external symbols
  *  somewhat smaller.  So, pack most of them all into a structure.
  */
@@ -52,13 +54,13 @@ EXTERN struct {
     double *wtemp;              /* temp vector of weights */
     double *lwt;
     double *rwt;                /*scratch double vectors, of length ncat */
-    double *vcost;              /* variable costs */
-    int *numcat;                /* variable type: 0=cont, 1+  =#categories */
+    double *variable_cost;              /* variable costs */
+    int *variable_types;                /* variable type: 0=cont, 1+  =#categories */
     int **sorts;                /* matrix of sort indices */
     int n;                      /* total number of subjects  */
     int num_y;                  /* number of y variables */
-    int nvar;                   /* number of predictors */
-    int maxpri;
+    int predictor_count;                   /* number of predictors */
+    int max_primary_splits;
     int maxsur;                 /* max # of primary or surrogate splits to use */
     int usesurrogate;
     int num_unique_cp;

@@ -22,7 +22,7 @@ branch(pNode tree, int obs)
     int j, dir;
     int category;               /* for categorical variables */
     pNode me;
-    pSplit tsplit;
+    Split* tsplit;
     double **xdata;
 
     if (!tree->leftson) return NULL;
@@ -37,7 +37,7 @@ branch(pNode tree, int obs)
     tsplit = me->primary;
     j = tsplit->var_num;
     if (R_FINITE(xdata[j][obs])) {
-	if (rp.numcat[j] == 0) {        /* continuous */
+	if (rp.variable_types[j] == 0) {        /* continuous */
 	    dir = (xdata[j][obs] < tsplit->spoint) ?
 		tsplit->csplit[0] : -tsplit->csplit[0];
 	    goto down;
@@ -57,7 +57,7 @@ branch(pNode tree, int obs)
     for (tsplit = me->surrogate; tsplit; tsplit = tsplit->nextsplit) {
 	j = tsplit->var_num;
 	if (R_FINITE(xdata[j][obs])) {  /* not missing */
-	    if (rp.numcat[j] == 0) {
+	    if (rp.variable_types[j] == 0) {
 		dir = (rp.xdata[j][obs] < tsplit->spoint) ?
 		    tsplit->csplit[0] : -tsplit->csplit[0];
 		goto down;

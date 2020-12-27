@@ -44,7 +44,7 @@ surrogate(pNode me, int n1, int n2)
      *  last surrogate (or to the right, if larger).
      */
     var = (me->primary)->var_num;
-    if (rp.numcat[var] == 0) {  /* continuous variable */
+    if (rp.variable_types[var] == 0) {  /* continuous variable */
 	split = (me->primary)->spoint;
 	extra = (me->primary)->csplit[0];
 	for (i = n1; i < n2; i++) {
@@ -97,10 +97,10 @@ surrogate(pNode me, int n1, int n2)
      * Now walk through the variables
      */
     me->surrogate = (pSplit) NULL;
-    for (i = 0; i < rp.nvar; i++) {
+    for (i = 0; i < rp.predictor_count; i++) {
 	if (var == i)
 	    continue;
-	ncat = rp.numcat[i];
+	ncat = rp.variable_types[i];
 
 	choose_surg(n1, n2, tempy, xdata[i], sorts[i], ncat,
 		    &improve, &split, rp.csplit, lcount, rcount, &adj_agree);
@@ -111,15 +111,15 @@ surrogate(pNode me, int n1, int n2)
 	/* sort it onto the list of surrogates */
 	ss = insert_split(&(me->surrogate), ncat, improve, rp.maxsur);
 	if (ss) {
-	    ss->improve = improve;
+	    ss->improvment = improve;
 	    ss->var_num = i;
 	    ss->count = 0;      /* corrected by nodesplit() */
 	    ss->adj = adj_agree;
-	    if (rp.numcat[i] == 0) {
+	    if (rp.variable_types[i] == 0) {
 		ss->spoint = split;
 		ss->csplit[0] = rp.csplit[0];
 	    } else
-		for (k = 0; k < rp.numcat[i]; k++)
+		for (k = 0; k < rp.variable_types[i]; k++)
 		    ss->csplit[k] = rp.csplit[k];
 	}
     }

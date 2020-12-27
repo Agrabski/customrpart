@@ -38,7 +38,7 @@
 #include "rpartproto.h"
 
 SEXP
-rpart(SEXP ncat2, SEXP method2, SEXP opt2,
+rpart(SEXP variable_type, SEXP method2, SEXP opt2,
       SEXP parms2, SEXP xvals2, SEXP xgrp2,
       SEXP ymat2, SEXP xmat2, SEXP wt2, SEXP ny2, SEXP cost2)
 {
@@ -72,7 +72,7 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
     double scale;
     CpTable cp;
 
-    ncat = INTEGER(ncat2);
+    ncat = INTEGER(variable_type);
     xgrp = INTEGER(xgrp2);
     xvals = asInteger(xvals2);
     wt = REAL(wt2);
@@ -97,10 +97,10 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
     rp.min_node = (int) dptr[1];
     rp.min_split = (int) dptr[0];
     rp.complexity = dptr[2];
-    rp.maxpri = (int) dptr[3] + 1;      /* max primary splits =
+    rp.max_primary_splits = (int) dptr[3] + 1;      /* max primary splits =
 					   max competitors + 1 */
-    if (rp.maxpri < 1)
-	rp.maxpri = 1;
+    if (rp.max_primary_splits < 1)
+	rp.max_primary_splits = 1;
     rp.maxsur = (int) dptr[4];
     rp.usesurrogate = (int) dptr[5];
     rp.sur_agree = (int) dptr[6];
@@ -108,11 +108,11 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
     rp.n = nrows(xmat2);
     n = rp.n;                   /* I get tired of typing "rp.n" 100 times
 				 * below */
-    rp.nvar = ncols(xmat2);
-    rp.numcat = INTEGER(ncat2);
+    rp.predictor_count = ncols(xmat2);
+    rp.variable_types = INTEGER(variable_type);
     rp.wt = wt;
     rp.iscale = 0.0;
-    rp.vcost = REAL(cost2);
+    rp.variable_cost = REAL(cost2);
 
     /*
      * create the "ragged array" pointers to the matrix
@@ -120,8 +120,8 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
      *   y is in row major order
      */
     dptr = REAL(xmat2);
-    rp.xdata = (double **) ALLOC(rp.nvar, sizeof(double *));
-    for (i = 0; i < rp.nvar; i++) {
+    rp.xdata = (double **) ALLOC(rp.predictor_count, sizeof(double *));
+    for (i = 0; i < rp.predictor_count; i++) {
 	rp.xdata[i] = dptr;
 	dptr += n;
     }
@@ -145,10 +145,10 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
      *   This sort is "once and for all".
      * I don't have to sort the categoricals.
      */
-    rp.sorts = (int **) ALLOC(rp.nvar, sizeof(int *));
-    rp.sorts[0] = (int *) ALLOC(n * rp.nvar, sizeof(int));
+    rp.sorts = (int **) ALLOC(rp.predictor_count, sizeof(int *));
+    rp.sorts[0] = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
     maxcat = 0;
-    for (i = 0; i < rp.nvar; i++) {
+    for (i = 0; i < rp.predictor_count; i++) {
 	rp.sorts[i] = rp.sorts[0] + i * n;
 	for (k = 0; k < n; k++) {
 	    if (!R_FINITE(rp.xdata[i][k])) {
@@ -171,8 +171,8 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
      * save away a copy of the rp.sorts, if needed for xval
      */
     if (xvals > 1) {
-	savesort = (int *) ALLOC(n * rp.nvar, sizeof(int));
-	memcpy(savesort, rp.sorts[0], n * rp.nvar * sizeof(int));
+	savesort = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
+	memcpy(savesort, rp.sorts[0], n * rp.predictor_count * sizeof(int));
     }
 
     /*
@@ -302,7 +302,7 @@ rpart(SEXP ncat2, SEXP method2, SEXP opt2,
     } else
 	ccsplit = NULL;
 
-    rpmatrix(tree, rp.numcat, ddsplit, iisplit, ccsplit, ddnode, iinode, 1);
+    rpmatrix(tree, rp.variable_types, ddsplit, iisplit, ccsplit, ddnode, iinode, 1);
     free_tree(tree, 0);         /* let the memory go */
 
     /*

@@ -8,7 +8,7 @@
 ** csplit[0] gets used even for continuous splits.
 */
 typedef struct split {
-    double improve;
+    double improvment;
     double adj;                 /* for surrogates only, adjusted agreement */
     double spoint;              /* only used if it is continuous */
     struct split *nextsplit;
@@ -22,8 +22,9 @@ typedef struct node {
     double risk;                /* risk for the node */
     double complexity;          /* complexity at which it will collapse */
     double sum_wt;              /* sum of the weights for the node  */
-    pSplit primary, surrogate;
-    struct node *rightson;
+	Split *primary;
+	Split *surrogate;
+	struct node *rightson;
     struct node *leftson;
     int num_obs;
     int lastsurrogate;
