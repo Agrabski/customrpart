@@ -9,8 +9,7 @@
 #include "node.h"
 #include "rpartproto.h"
 
-pSplit
-insert_split(Split ** node_to_split, int variable_type, double improvment, int max_splits)
+Split * insert_split(Split ** node_to_split, int variable_type, double improvment, int max_splits)
 {
 	int list_size;
 	pSplit s1, s2, s3 = NULL, s4;
@@ -31,7 +30,7 @@ insert_split(Split ** node_to_split, int variable_type, double improvment, int m
 	}
 	if (max_splits < 2)
 	{
-	   /* user asked for only 1 to be retained! */
+		/* user asked for only 1 to be retained! */
 		s3 = *node_to_split;
 		if (improvment <= s3->improvment)
 			return NULL;
@@ -45,7 +44,7 @@ insert_split(Split ** node_to_split, int variable_type, double improvment, int m
 	}
 	/* set up --- list_size = length of list, s4=last element, s3=next to last */
 	list_size = 1;
-	for (s4 = *node_to_split; s4->nextsplit; s4 = s4->nextsplit)
+	for (s4 = *node_to_split; s4->nextsplit != NULL; s4 = s4->nextsplit)
 	{
 		s3 = s4;
 		list_size++;

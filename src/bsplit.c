@@ -31,14 +31,15 @@ bsplit(Node* me, int n1, int n2)
     wtemp = rp.wtemp;
 
     // test out the variables 1 at at time
-    me->primary = (pSplit) NULL;
+    me->primary = NULL;
     for (i = 0; i < rp.predictor_count; i++)
 	{
 		index = rp.sorts[i];
 		variable_type = rp.variable_types[i];
 		// extract x and y data
 		k = 0;
-		for (j = n1; j < n2; j++) {
+		for (j = n1; j < n2; j++)
+		{
 			kk = index[j];
 			if (kk >= 0 && rp.wt[kk] > 0) 
 			{  /* x data not missing and wt > 0 */

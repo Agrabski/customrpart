@@ -26,12 +26,12 @@ rpcountup(pNode me, int *nnode, int *nsplit, int *ncat)
 	k = 0;
 	for (ss = me->primary; ss; ss = ss->nextsplit) {
 	    i++;
-	    if (rp.numcat[ss->var_num] > 0)
+	    if (rp.variable_types[ss->var_num] > 0)
 		k++;
 	}
 	for (ss = me->surrogate; ss; ss = ss->nextsplit) {
 	    j++;
-	    if (rp.numcat[ss->var_num] > 0)
+	    if (rp.variable_types[ss->var_num] > 0)
 		k++;
 	}
 

@@ -71,7 +71,8 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2)
      * Guess I have to do the split
      */
     bsplit(me, n1, n2);
-    if (!me->primary) {
+    if (!me->primary) 
+	{
 	/*
 	 * This is rather rare -- but I couldn't find a split worth doing
 	 */
@@ -87,9 +88,9 @@ partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2)
     print_tree(me, 2);
 #endif
     if (rp.maxsur > 0)
-	surrogate(me, n1, n2);
+		surrogate(me, n1, n2);
     else
-	me->surrogate = (pSplit) NULL;
+		me->surrogate = (pSplit) NULL;
     nodesplit(me, nodenum, n1, n2, &nleft, &nright);
 
     /*

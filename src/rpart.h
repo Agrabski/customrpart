@@ -36,13 +36,12 @@
 #else
 #define EXTERN extern
 #endif
-
 static const int CONTINIOUS_VARIABLE = 0;
 
 /* As a sop to S, I need to keep the total number of external symbols
  *  somewhat smaller.  So, pack most of them all into a structure.
  */
-EXTERN struct {
+EXTERN struct Globals {
     double complexity;
     double alpha;
     double iscale;              /* used to check improvement==0, with error */
@@ -78,7 +77,9 @@ EXTERN struct {
 
 EXTERN struct cptable *cptable_tail;
 EXTERN int (*rp_init) ();       /*called to initialize a splitting function */
-EXTERN void (*rp_choose) ();    /*set to the splitting function */
+EXTERN void (*rp_choose) (int n, double *y[], double *x, int nclass,
+		  int edge, double *improve, double *split, int *csplit,
+		  double myrisk, double *wt);    /*set to the splitting function */
 EXTERN void (*rp_eval) ();      /*set to the evaluation routine */
 EXTERN double (*rp_error) ();   /*set to the prediction error routine */
 EXTERN int nodesize;

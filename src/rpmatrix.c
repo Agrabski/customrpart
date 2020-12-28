@@ -64,7 +64,7 @@ rpmatrix(pNode me, int *numcat, double **dsplit,
 	for (spl = me->primary; spl; spl = spl->nextsplit) {
 	    i++;
 	    j = spl->var_num;
-	    dsplit[0][scnt] = spl->improve;
+	    dsplit[0][scnt] = spl->improvment;
 	    if (numcat[j] == 0) {
 		dsplit[1][scnt] = spl->spoint;
 		isplit[2][scnt] = spl->csplit[0];
@@ -85,7 +85,7 @@ rpmatrix(pNode me, int *numcat, double **dsplit,
 	for (spl = me->surrogate; spl; spl = spl->nextsplit) {
 	    i++;
 	    j = spl->var_num;
-	    dsplit[0][scnt] = spl->improve;
+	    dsplit[0][scnt] = spl->improvment;
 	    dsplit[2][scnt] = spl->adj;
 	    if (numcat[j] == 0) {
 		dsplit[1][scnt] = spl->spoint;

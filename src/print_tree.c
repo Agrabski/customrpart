@@ -77,18 +77,18 @@ printme(pNode me, int id)
     Rprintf("  Primary splits:\n");
     for (ss = me->primary; ss; ss = ss->nextsplit) {
 	j = ss->var_num;
-	if (rp.numcat[j] == 0) {
+	if (rp.variable_types[j] == 0) {
 	    if (ss->csplit[0] == LEFT)
 		Rprintf
-		    ("\tvar%d < %5g to the left, improve=%5.3f,  (%d missing)\n",
-		     j, ss->spoint, ss->improve, me->num_obs - ss->count);
+		    ("\tvar%d < %5g to the left, improvment=%5.3f,  (%d missing)\n",
+		     j, ss->spoint, ss->improvment, me->num_obs - ss->count);
 	    else
 		Rprintf
-		    ("\tvar%d > %5g to the left, improve=%5.3f, (%d missing)\n",
-		     j, ss->spoint, ss->improve, me->num_obs - ss->count);
+		    ("\tvar%d > %5g to the left, improvment=%5.3f, (%d missing)\n",
+		     j, ss->spoint, ss->improvment, me->num_obs - ss->count);
 	} else {
 	    Rprintf("\tvar%d splits as ", j);
-	    for (k = 0; k < rp.numcat[j]; k++) {
+	    for (k = 0; k < rp.variable_types[j]; k++) {
 		switch (ss->csplit[k]) {
 		case LEFT:
 		    Rprintf("L");
@@ -100,12 +100,12 @@ printme(pNode me, int id)
 		    Rprintf("-");
 		}
 	    }
-	    if (rp.numcat[j] < 7)
-		Rprintf(",\timprove=%5.3f, (%d missing)\n",
-			ss->improve, (me->num_obs - ss->count));
+	    if (rp.variable_types[j] < 7)
+		Rprintf(",\timprovment=%5.3f, (%d missing)\n",
+			ss->improvment, (me->num_obs - ss->count));
 	    else
-		Rprintf(", improve=%5.3f, (%d missing)\n",
-			ss->improve, (me->num_obs - ss->count));
+		Rprintf(", improvment=%5.3f, (%d missing)\n",
+			ss->improvment, (me->num_obs - ss->count));
 	}
     }
 
@@ -116,18 +116,18 @@ printme(pNode me, int id)
 	Rprintf("  Surrogate splits:\n");
     for (ss = me->surrogate; ss; ss = ss->nextsplit) {
 	j = ss->var_num;
-	if (rp.numcat[j] == 0) {
+	if (rp.variable_types[j] == 0) {
 	    if (ss->csplit[0] == LEFT)
 		Rprintf
 		    ("\tvar%d < %5g to the left, agree=%5.3f, (%d split)\n",
-		     j, ss->spoint, ss->improve, ss->count);
+		     j, ss->spoint, ss->improvment, ss->count);
 	    else
 		Rprintf
 		    ("\tvar%d > %5g to the left, agree=%5.3f, (%d split)\n",
-		     j, ss->spoint, ss->improve, ss->count);
+		     j, ss->spoint, ss->improvment, ss->count);
 	} else {
 	    Rprintf("\tvar%d splits as ", j);
-	    for (k = 0; k < rp.numcat[j]; k++) {
+	    for (k = 0; k < rp.variable_types[j]; k++) {
 		switch (ss->csplit[k]) {
 		case LEFT:
 		    Rprintf("L");
@@ -139,12 +139,12 @@ printme(pNode me, int id)
 		    Rprintf("-");
 		}
 	    }
-	    if (rp.numcat[j] < 7)
+	    if (rp.variable_types[j] < 7)
 		Rprintf(",\tagree=%5.3f, (%d split)\n",
-			ss->improve, ss->count);
+			ss->improvment, ss->count);
 	    else
 		Rprintf(", agree=%5.3f, (%d split)\n",
-			ss->improve, ss->count);
+			ss->improvment, ss->count);
 	}
     }
 }
