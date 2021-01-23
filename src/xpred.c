@@ -99,12 +99,12 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 					 * competitors + 1 */
     if (rp.max_primary_splits < 1)
 	rp.max_primary_splits = 1;
-    rp.maxsur = (int) dptr[4];
+    rp.maximum_surogate_splits = (int) dptr[4];
     rp.usesurrogate = (int) dptr[5];
     rp.sur_agree = (int) dptr[6];
     rp.maxnode = (int) pow((double) 2.0, (double) dptr[7]) - 1;
-    rp.n = nrows(xmat2);
-    n = rp.n;                   /* I get tired of typing "rp.n" 100 times
+    rp.number_of_subjects = nrows(xmat2);
+    n = rp.number_of_subjects;                   /* I get tired of typing "rp.n" 100 times
 				 * below */
     rp.predictor_count = ncols(xmat2);
     rp.variable_types = INTEGER(ncat2);
@@ -144,11 +144,11 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
      *   This sort is "once and for all".
      * I don't have to sort the categoricals.
      */
-    rp.sorts = (int **) ALLOC(rp.predictor_count, sizeof(int *));
-    rp.sorts[0] = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
+    rp.sort_index_matrix = (int **) ALLOC(rp.predictor_count, sizeof(int *));
+    rp.sort_index_matrix[0] = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
     maxcat = 0;
     for (i = 0; i < rp.predictor_count; i++) {
-	rp.sorts[i] = rp.sorts[0] + i * n;
+	rp.sort_index_matrix[i] = rp.sort_index_matrix[0] + i * n;
 	for (k = 0; k < n; k++) {
 	    if (!R_FINITE(rp.xdata[i][k])) {
 		rp.tempvec[k] = -(k + 1);       /* this variable is missing */
@@ -163,14 +163,14 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 	else if (ncat[i] > maxcat)
 	    maxcat = ncat[i];
 	for (k = 0; k < n; k++)
-	    rp.sorts[i][k] = rp.tempvec[k];
+	    rp.sort_index_matrix[i][k] = rp.tempvec[k];
     }
 
     /*
      * save away a copy of the rp.sorts
      */
     savesort = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
-    memcpy(savesort, rp.sorts[0], n * rp.predictor_count * sizeof(int));
+    memcpy(savesort, rp.sort_index_matrix[0], n * rp.predictor_count * sizeof(int));
 
     /*
      * And now the last of my scratch space
@@ -213,7 +213,7 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
      * do the validations
      */
     total_wt = 0;
-    for (i = 0; i < rp.n; i++)
+    for (i = 0; i < rp.number_of_subjects; i++)
 	total_wt += rp.wt[i];
     old_wt = total_wt;
 
@@ -225,7 +225,7 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 	 */
 	for (j = 0; j < rp.predictor_count; j++) {
 	    k = 0;
-	    for (i = 0; i < rp.n; i++) {
+	    for (i = 0; i < rp.number_of_subjects; i++) {
 		ii = savesort[j * n + i];       /* walk through the variables
 						 * in order */
 		if (ii < 0)
@@ -235,7 +235,7 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 		     * this obs is left in --
 		     * copy to the front half of rp.sorts
 		     */
-		    rp.sorts[j][k] = savesort[j * n + i];
+		    rp.sort_index_matrix[j][k] = savesort[j * n + i];
 		    k++;
 		}
 	    }
@@ -251,7 +251,7 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 	for (i = 0; i < n; i++) {
 	    rp.which[i] = 1;    /* everyone starts in the top node */
 	    if (xgrp[i] == xgroup + 1) {
-		rp.sorts[0][last] = i;
+		rp.sort_index_matrix[0][last] = i;
 		last++;
 	    } else {
 		rp.ytemp[k] = rp.ydata[i];
@@ -282,8 +282,8 @@ xpred(SEXP ncat2, SEXP method2, SEXP opt2,
 	/*
 	 * run the extra data down the new tree
 	 */
-	for (i = k; i < rp.n; i++) {
-	    j = rp.sorts[0][i];
+	for (i = k; i < rp.number_of_subjects; i++) {
+	    j = rp.sort_index_matrix[0][i];
 	    rundown2(xtree, j, cp, (predict + j * ncp * nresp), nresp);
 	}
 

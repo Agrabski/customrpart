@@ -45,7 +45,7 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
 
     pNode tree;          /* top node of the tree */
     char *errmsg;
-    int i, j, k, n;
+    int i, j, k, number_of_subjects;
     int maxcat;
     double temp;
     int *savesort = NULL /* -Wall */ ;
@@ -101,12 +101,12 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
 					   max competitors + 1 */
     if (rp.max_primary_splits < 1)
 	rp.max_primary_splits = 1;
-    rp.maxsur = (int) dptr[4];
+    rp.maximum_surogate_splits = (int) dptr[4];
     rp.usesurrogate = (int) dptr[5];
     rp.sur_agree = (int) dptr[6];
     rp.maxnode = (int) pow((double) 2.0, (double) dptr[7]) - 1;
-    rp.n = nrows(xmat2);
-    n = rp.n;                   /* I get tired of typing "rp.n" 100 times
+    rp.number_of_subjects = nrows(xmat2);
+    number_of_subjects = rp.number_of_subjects;                   /* I get tired of typing "rp.n" 100 times
 				 * below */
     rp.predictor_count = ncols(xmat2);
     rp.variable_types = INTEGER(variable_type);
@@ -123,34 +123,34 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
     rp.xdata = (double **) ALLOC(rp.predictor_count, sizeof(double *));
     for (i = 0; i < rp.predictor_count; i++) {
 	rp.xdata[i] = dptr;
-	dptr += n;
+	dptr += number_of_subjects;
     }
-    rp.ydata = (double **) ALLOC(n, sizeof(double *));
+    rp.ydata = (double **) ALLOC(number_of_subjects, sizeof(double *));
 
     dptr = REAL(ymat2);
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < number_of_subjects; i++) {
 	rp.ydata[i] = dptr;
 	dptr += rp.num_y;
     }
     /*
      * allocate some scratch
      */
-    rp.tempvec = (int *) ALLOC(n, sizeof(int));
-    rp.xtemp = (double *) ALLOC(n, sizeof(double));
-    rp.ytemp = (double **) ALLOC(n, sizeof(double *));
-    rp.wtemp = (double *) ALLOC(n, sizeof(double));
+    rp.tempvec = (int *) ALLOC(number_of_subjects, sizeof(int));
+    rp.xtemp = (double *) ALLOC(number_of_subjects, sizeof(double));
+    rp.ytemp = (double **) ALLOC(number_of_subjects, sizeof(double *));
+    rp.wtemp = (double *) ALLOC(number_of_subjects, sizeof(double));
 
     /*
      * create a matrix of sort indices, one for each continuous variable
      *   This sort is "once and for all".
      * I don't have to sort the categoricals.
      */
-    rp.sorts = (int **) ALLOC(rp.predictor_count, sizeof(int *));
-    rp.sorts[0] = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
+    rp.sort_index_matrix = (int **) ALLOC(rp.predictor_count, sizeof(int *));
+    rp.sort_index_matrix[0] = (int *) ALLOC(number_of_subjects * rp.predictor_count, sizeof(int));
     maxcat = 0;
     for (i = 0; i < rp.predictor_count; i++) {
-	rp.sorts[i] = rp.sorts[0] + i * n;
-	for (k = 0; k < n; k++) {
+	rp.sort_index_matrix[i] = rp.sort_index_matrix[0] + i * number_of_subjects;
+	for (k = 0; k < number_of_subjects; k++) {
 	    if (!R_FINITE(rp.xdata[i][k])) {
 		rp.tempvec[k] = -(k + 1);       /* this variable is missing */
 		rp.xtemp[k] = 0;        /* avoid weird numerics in S's NA */
@@ -160,19 +160,19 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
 	    }
 	}
 	if (ncat[i] == 0)
-	    mysort(0, n - 1, rp.xtemp, rp.tempvec);
+	    mysort(0, number_of_subjects - 1, rp.xtemp, rp.tempvec);
 	else if (ncat[i] > maxcat)
 	    maxcat = ncat[i];
-	for (k = 0; k < n; k++)
-	    rp.sorts[i][k] = rp.tempvec[k];
+	for (k = 0; k < number_of_subjects; k++)
+	    rp.sort_index_matrix[i][k] = rp.tempvec[k];
     }
 
     /*
      * save away a copy of the rp.sorts, if needed for xval
      */
     if (xvals > 1) {
-	savesort = (int *) ALLOC(n * rp.predictor_count, sizeof(int));
-	memcpy(savesort, rp.sorts[0], n * rp.predictor_count * sizeof(int));
+	savesort = (int *) ALLOC(number_of_subjects * rp.predictor_count, sizeof(int));
+	memcpy(savesort, rp.sort_index_matrix[0], number_of_subjects * rp.predictor_count * sizeof(int));
     }
 
     /*
@@ -191,31 +191,31 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
      * initialize the top node of the tree
      */
     errmsg = _("unknown error");
-    which3 = PROTECT(allocVector(INTSXP, n));
+    which3 = PROTECT(allocVector(INTSXP, number_of_subjects));
     rp.which = INTEGER(which3);
     temp = 0;
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < number_of_subjects; i++) {
 	rp.which[i] = 1;
 	temp += wt[i];
     }
-    i = (*rp_init) (n, rp.ydata, maxcat, &errmsg, parms, &rp.num_resp, 1, wt);
+    i = (*rp_init) (number_of_subjects, rp.ydata, maxcat, &errmsg, parms, &rp.num_resp, 1, wt);
     if (i > 0)
 	error(errmsg);
 
     nodesize = sizeof(Node) + (rp.num_resp - 20) * sizeof(double);
     tree = (pNode) ALLOC(1, nodesize);
     memset(tree, 0, nodesize);
-    tree->num_obs = n;
+    tree->num_obs = number_of_subjects;
     tree->sum_wt = temp;
 
-    (*rp_eval) (n, rp.ydata, tree->response_est, &(tree->risk), wt);
+    (*rp_eval) (number_of_subjects, rp.ydata, tree->response_est, &(tree->risk), wt);
     tree->complexity = tree->risk;
     rp.alpha = rp.complexity * tree->risk;
 
     /*
      * Do the basic tree
      */
-    partition(1, tree, &temp, 0, n);
+    partition(1, tree, &temp, 0, number_of_subjects);
     CpTable cptable = (CpTable) ALLOC(1, sizeof(cpTable));
     cptable->cp = tree->complexity;
     cptable->risk = tree->risk;
@@ -310,7 +310,7 @@ rpart(SEXP variable_type, SEXP method2, SEXP opt2,
      *  Nodes are sometimes trimmed during the
      *  tree building, and 'which' is not updated in that case
      */
-    for (i = 0; i < n; i++) {
+    for (i = 0; i < number_of_subjects; i++) {
 	k = rp.which[i];
 	do {
 	    for (j = 0; j < nodecount; j++)

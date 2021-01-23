@@ -3,4 +3,6 @@
 .RData
 .Ruserdata
 *.o
-src/customrpart.dll
+*.dll
+src/rpart.dll
+

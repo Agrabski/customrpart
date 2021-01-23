@@ -1,5 +1,11 @@
 {
 	"files.associations": {
-		"rpart.h": "c"
+		"rpart.h": "c",
+		"*.tcc": "c",
+		"r.h": "c",
+		"print.h": "c",
+		"error.h": "c",
+		"memory.h": "c",
+		"rinternals.h": "c"
 	}
 }

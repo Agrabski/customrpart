@@ -3,6 +3,8 @@
 #include "node.h"
 #include "rpartproto.h"
 
+SEXP init_split_choice_function(SEXP function, SEXP threshold, SEXP col_names);
+
 SEXP init_rpcallback(SEXP rhox, SEXP ny, SEXP nr, SEXP expr1x, SEXP expr2x);
 SEXP rpartexp2(SEXP dtimes, SEXP seps);
 SEXP pred_rpart(SEXP dimx, SEXP nnode, SEXP nsplit, SEXP dimc,
@@ -15,6 +17,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"xpred", (DL_FUNC) &xpred, 15},
     {"rpartexp2", (DL_FUNC) &rpartexp2, 2},
     {"pred_rpart", (DL_FUNC) &pred_rpart, 12},
+	{"init_split_choice_function", (DL_FUNC)&init_split_choice_function, 3},
     {NULL, NULL, 0}
 };
 

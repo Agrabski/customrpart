@@ -1,6 +1,6 @@
 /*
  * Calculate the surrogate splits for a node and its primary
- *    (This routine is an awful lot like bsplit)
+ *    (This routine is an awful lot like create_primary_split_list)
  *
  * Input :      node
  *              start and stop indices for the arrays (which obs apply)
@@ -20,22 +20,20 @@ void
 surrogate(pNode me, int n1, int n2)
 {
     int i, j, k;
-    int var;                    /* the primary split variable */
+    int primary_split_variable;                    /* the primary split variable */
     double split;
     double improve;
-    double lcount, rcount;      /* weight sent left and right by
+    double left_count, right_count;      /* weight sent left and right by
 				 * primary */
     int extra;
     pSplit ss;
     int *index;
     int *tempy;
-    int **sorts;
     double **xdata;
     int ncat;
     double adj_agree;
 
     tempy = rp.tempvec;
-    sorts = rp.sorts;
     xdata = rp.xdata;
     /*
      * First construct, in tempy, the "y" variable for this calculation.
@@ -43,51 +41,56 @@ surrogate(pNode me, int n1, int n2)
      *  Count up the number of obs the primary sends to the left, as my
      *  last surrogate (or to the right, if larger).
      */
-    var = (me->primary)->var_num;
-    if (rp.variable_types[var] == 0) {  /* continuous variable */
-	split = (me->primary)->spoint;
-	extra = (me->primary)->csplit[0];
-	for (i = n1; i < n2; i++) {
-	    j = sorts[var][i];
-	    if (j < 0)
-		tempy[-(j + 1)] = 0;
-	    else
-		tempy[j] = (xdata[var][j] < split) ? extra : -extra;
-	}
-    } else {                    /* categorical variable */
-	index = (me->primary)->csplit;
-	for (i = n1; i < n2; i++) {
-	    j = sorts[var][i];
-	    if (j < 0)
-		tempy[-(j + 1)] = 0;
-	    else
-		tempy[j] = index[(int) xdata[var][j] - 1];
-	}
+    primary_split_variable = (me->primary)->var_num;
+    if (rp.variable_types[primary_split_variable] == CONTINIOUS_VARIABLE)
+	{
+		split = (me->primary)->spoint;
+		extra = (me->primary)->csplit[0];
+		for (i = n1; i < n2; i++)
+		{
+			j = rp.sort_index_matrix[primary_split_variable][i];
+			if (j < 0)
+			tempy[-(j + 1)] = 0;
+			else
+			tempy[j] = (xdata[primary_split_variable][j] < split) ? extra : -extra;
+		}
+    }
+	else
+	{                    /* categorical variable */
+		index = (me->primary)->csplit; //pointer decay
+		for (i = n1; i < n2; i++)
+		{
+			j = rp.sort_index_matrix[primary_split_variable][i];
+			if (j < 0)
+				tempy[-(j + 1)] = 0;
+			else
+				tempy[j] = index[(int) xdata[primary_split_variable][j] - 1];
+		}
     }
 
     /* count the total number sent left and right */
-    lcount = 0;
-    rcount = 0;
+    left_count = 0;
+    right_count = 0;
     for (i = n1; i < n2; i++) {
-	j = sorts[var][i];
+	j = rp.sort_index_matrix[primary_split_variable][i];
 	if (j < 0)
 	    j = -(1 + j);
 	switch (tempy[j]) {
 	case LEFT:
-	    lcount += rp.wt[j];
+	    left_count += rp.wt[j];
 	    break;
 	case RIGHT:
-	    rcount += rp.wt[j];
+	    right_count += rp.wt[j];
 	    break;
 	default:
 	    break;
 	}
     }
 
-    if (lcount < rcount)
+    if (left_count < right_count)
 	me->lastsurrogate = RIGHT;
     else {
-	if (lcount > rcount)
+	if (left_count > right_count)
 	    me->lastsurrogate = LEFT;
 	else
 	    me->lastsurrogate = 0;      /* no default */
@@ -98,18 +101,18 @@ surrogate(pNode me, int n1, int n2)
      */
     me->surrogate = (pSplit) NULL;
     for (i = 0; i < rp.predictor_count; i++) {
-	if (var == i)
+	if (primary_split_variable == i)
 	    continue;
 	ncat = rp.variable_types[i];
 
-	choose_surg(n1, n2, tempy, xdata[i], sorts[i], ncat,
-		    &improve, &split, rp.csplit, lcount, rcount, &adj_agree);
+	choose_surg(n1, n2, tempy, xdata[i], rp.sort_index_matrix[i], ncat,
+		    &improve, &split, rp.csplit, left_count, right_count, &adj_agree);
 
 	if (adj_agree <= 1e-10)    /* was 0 */
 	    continue;           /* no better than default */
 
 	/* sort it onto the list of surrogates */
-	ss = insert_split(&(me->surrogate), ncat, improve, rp.maxsur);
+	ss = insert_split(&(me->surrogate), ncat, improve, rp.maximum_surogate_splits);
 	if (ss) {
 	    ss->improvment = improve;
 	    ss->var_num = i;

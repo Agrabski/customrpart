@@ -12,8 +12,7 @@
 #include "node.h"
 #include "rpartproto.h"
 
-void
-bsplit(Node* me, int n1, int n2)
+void create_primary_split_list(Node* me, int n1, int n2)
 {
     int i, j, k;
     int kk;
@@ -34,7 +33,7 @@ bsplit(Node* me, int n1, int n2)
     me->primary = NULL;
     for (i = 0; i < rp.predictor_count; i++)
 	{
-		index = rp.sorts[i];
+		index = rp.sort_index_matrix[i];
 		variable_type = rp.variable_types[i];
 		// extract x and y data
 		k = 0;

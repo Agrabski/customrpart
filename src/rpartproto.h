@@ -7,7 +7,7 @@
 
 pNode branch(pNode tree, int obs);
 
-void bsplit(pNode me, int n1, int n2);
+void create_primary_split_list(pNode me, int n1, int n2);
 
 void choose_surg(int n1, int n2, int *y, double *x, int *order,
 		 int ncat, double *agreement, double *split, int *csplit,

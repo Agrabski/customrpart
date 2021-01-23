@@ -57,8 +57,8 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
     xtemp = (double *) CALLOC(3 * rp.num_unique_cp, sizeof(double));
     xpred = xtemp + rp.num_unique_cp;
     cp = xpred + rp.num_unique_cp;
-    savew = (int *) CALLOC(rp.n, sizeof(int));
-    for (i = 0; i < rp.n; i++)
+    savew = (int *) CALLOC(rp.number_of_subjects, sizeof(int));
+    for (i = 0; i < rp.number_of_subjects; i++)
 	savew[i] = rp.which[i]; /* restore at the end */
 
    /*
@@ -69,7 +69,7 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 	 cplist = cplist->forward, i++)
 	cp[i] = sqrt(cplist->cp * (cplist->forward)->cp);
     total_wt = 0;
-    for (i = 0; i < rp.n; i++)
+    for (i = 0; i < rp.number_of_subjects; i++)
 	total_wt += rp.wt[i];
     old_wt = total_wt;
 
@@ -84,8 +84,8 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 	*/
 	for (j = 0; j < rp.predictor_count; j++) {
 	    k = 0;
-	    for (i = 0; i < rp.n; i++) {
-		ii = savesort[j * rp.n + i];
+	    for (i = 0; i < rp.number_of_subjects; i++) {
+		ii = savesort[j * rp.number_of_subjects + i];
 		if (ii < 0)
 		    ii = -(1 + ii);     /* missings move too */
 		if (x_grp[ii] != xgroup + 1) {
@@ -93,7 +93,7 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 		    * this obs is left in --
 		    *  copy to the front half of rp.sorts
 		    */
-		    rp.sorts[j][k] = savesort[j * rp.n + i];
+		    rp.sort_index_matrix[j][k] = savesort[j * rp.number_of_subjects + i];
 		    k++;
 		}
 	    }
@@ -106,10 +106,10 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 	last = k;
 	k = 0;
 	temp = 0;
-	for (i = 0; i < rp.n; i++) {
+	for (i = 0; i < rp.number_of_subjects; i++) {
 	    rp.which[i] = 1;    /* everyone starts in group 1 */
 	    if (x_grp[i] == xgroup + 1) {
-		rp.sorts[0][last] = i;
+		rp.sort_index_matrix[0][last] = i;
 		last++;
 	    } else {
 		rp.ytemp[k] = rp.ydata[i];
@@ -141,8 +141,8 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
        /*
 	* run the extra data down the new tree
 	*/
-	for (i = k; i < rp.n; i++) {
-	    j = rp.sorts[0][i];
+	for (i = k; i < rp.number_of_subjects; i++) {
+	    j = rp.sort_index_matrix[0][i];
 	    rundown(xtree, j, cp, xpred, xtemp);
 #if DEBUG > 1
 	    if (debug > 1) {
@@ -172,7 +172,7 @@ xval(int n_xval, CpTable cptable_head, int *x_grp,
 			    cplist->xrisk * cplist->xrisk / total_wt);
     }
     rp.alpha = alphasave;
-    for (i = 0; i < rp.n; i++)
+    for (i = 0; i < rp.number_of_subjects; i++)
 	rp.which[i] = savew[i];
     Free(savew);
     Free(xtemp);

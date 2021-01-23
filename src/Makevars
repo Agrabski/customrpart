@@ -1,0 +1,1 @@
+PKG_CPPFLAGS = -ggdb -O0 -DDEBUG

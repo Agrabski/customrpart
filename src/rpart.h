@@ -55,12 +55,12 @@ EXTERN struct Globals {
     double *rwt;                /*scratch double vectors, of length ncat */
     double *variable_cost;              /* variable costs */
     int *variable_types;                /* variable type: 0=cont, 1+  =#categories */
-    int **sorts;                /* matrix of sort indices */
-    int n;                      /* total number of subjects  */
+    int **sort_index_matrix;                /* matrix of sort indices */
+    int number_of_subjects;                      /* total number of subjects  */
     int num_y;                  /* number of y variables */
     int predictor_count;                   /* number of predictors */
     int max_primary_splits;
-    int maxsur;                 /* max # of primary or surrogate splits to use */
+    int maximum_surogate_splits;                 /* max # of primary or surrogate splits to use */
     int usesurrogate;
     int num_unique_cp;
     int min_node;               /* minimum size for any terminal node */

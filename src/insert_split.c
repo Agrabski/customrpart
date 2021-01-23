@@ -12,7 +12,7 @@
 Split * insert_split(Split ** node_to_split, int variable_type, double improvment, int max_splits)
 {
 	int list_size;
-	pSplit s1, s2, s3 = NULL, s4;
+	pSplit before_new, after_new, next_to_last = NULL, last_element;
 
 // csplit[0] gets used even for continuous splits.
 	if (variable_type == CONTINIOUS_VARIABLE)
@@ -23,68 +23,69 @@ Split * insert_split(Split ** node_to_split, int variable_type, double improvmen
 	if (*node_to_split == NULL)
 	{
 		/* first call to a new list */
-		s3 = (Split*) CALLOC(1, splitsize);
-		s3->nextsplit = NULL;
-		*node_to_split = s3;
-		return s3;
+		next_to_last = (Split*) CALLOC(1, splitsize);
+		next_to_last->nextsplit = NULL;
+		*node_to_split = next_to_last;
+		return next_to_last;
 	}
+	// replace or do noting
 	if (max_splits < 2)
 	{
 		/* user asked for only 1 to be retained! */
-		s3 = *node_to_split;
-		if (improvment <= s3->improvment)
+		next_to_last = *node_to_split;
+		if (improvment <= next_to_last->improvment)
 			return NULL;
 		if (variable_type > 1) {
-			Free(s3);
-			s3 = (pSplit) CALLOC(1, splitsize);
-			s3->nextsplit = NULL;
-			*node_to_split = s3;
+			Free(next_to_last);
+			next_to_last = (pSplit) CALLOC(1, splitsize);
+			next_to_last->nextsplit = NULL;
+			*node_to_split = next_to_last;
 		}
-		return s3;
+		return next_to_last;
 	}
-	/* set up --- list_size = length of list, s4=last element, s3=next to last */
+	/* set up --- list_size = length of list, last_element=last element, next_to_last=next to last */
 	list_size = 1;
-	for (s4 = *node_to_split; s4->nextsplit != NULL; s4 = s4->nextsplit)
+	for (last_element = *node_to_split; last_element->nextsplit != NULL; last_element = last_element->nextsplit)
 	{
-		s3 = s4;
+		next_to_last = last_element;
 		list_size++;
 	}
 
-	/* now set up so that the "to be added" is between s1 and s2 */
-	s1 = *node_to_split;
-	for (s2 = *node_to_split; s2 != NULL; s2 = s2->nextsplit)
+	/* now set up so that the "to be added" is between before_new and after_new */
+	before_new = *node_to_split;
+	for (after_new = *node_to_split; after_new != NULL; after_new = after_new->nextsplit)
 	{
-		if (improvment > s2->improvment)
+		if (improvment > after_new->improvment)
 			break;
-		s1 = s2;
+		before_new = after_new;
 	}
 
 	if (list_size == max_splits)
 	{
-		if (s2 == NULL)
-			return NULL;        /* not good enough */
-		if (variable_type > 1) {
+		if (after_new == NULL)
+			return NULL; // not good enough
+		if (variable_type > 1)
+		{
 		// FIXME: use Realloc
-			Free(s4);           /* get new memory -- this chunk may be too
-					* small */
-			s4 = (pSplit) CALLOC(1, splitsize);
+			Free(last_element); // get new memory -- this chunk may be too small 
+			last_element = (pSplit) CALLOC(1, splitsize);
 		}
-		if (s1 == s3)
-			s4->nextsplit = NULL;
+		if (before_new == next_to_last)
+			last_element->nextsplit = NULL;
 		else
 		{
-			s3->nextsplit = NULL;
-			s4->nextsplit = s2;
+			next_to_last->nextsplit = NULL;
+			last_element->nextsplit = after_new;
 		}
 	}
 	else
 	{
-		s4 = (pSplit) CALLOC(1, splitsize);
-		s4->nextsplit = s2;
+		last_element = (pSplit) CALLOC(1, splitsize);
+		last_element->nextsplit = after_new;
 	}
-	if (s2 == *node_to_split)
-		*node_to_split = s4;
+	if (after_new == *node_to_split)
+		*node_to_split = last_element;
 	else
-		s1->nextsplit = s4;
-	return s4;
+		before_new->nextsplit = last_element;
+	return last_element;
 }

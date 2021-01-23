@@ -3,8 +3,11 @@
 #
 rpart <-
     function(formula, data, weights, subset, na.action = na.rpart, method,
-             model = FALSE, x = FALSE, y = TRUE, parms, control, cost, ...)
+             model = FALSE, x = FALSE, y = TRUE, parms, control, cost, split_pick_function, split_pick_threshold, ...)
 {
+	if(!is.null(split_pick_function ))
+		.Call(C_init_split_choice_function, split_pick_function, split_pick_threshold, colnames(data));
+
     Call <- match.call()
     if (is.data.frame(model)) {
         m <- model
@@ -41,19 +44,22 @@ rpart <-
 
     if (is.list(method)) {
         ## User-written split methods
-	mlist <- method
-	method <- "user"
+		mlist <- method
+		method <- "user"
 
-        ## Set up C callback.  Assign the result to a variable to avoid
-        ## garbage collection
-	init <- if (missing(parms)) mlist$init(Y, offset, wt = wt)
-	        else mlist$init(Y, offset, parms, wt)
-        keep <- rpartcallback(mlist, nobs, init)
+			## Set up C callback.  Assign the result to a variable to avoid
+			## garbage collection
+		init <-
+			if (missing(parms))
+				mlist$init(Y, offset, wt = wt)
+			else
+				mlist$init(Y, offset, parms, wt)
+		keep <- rpartcallback(mlist, nobs, init)
 
-	method.int <- 4L             # the fourth entry in func_table.h
-#	numresp <- init$numresp
-#	numy <- init$numy
-	parms <- init$parms
+		method.int <- 4L             # the fourth entry in func_table.h
+	#	numresp <- init$numresp
+	#	numy <- init$numy
+		parms <- init$parms
     } else {
 	method.int <- pmatch(method, c("anova", "poisson", "class", "exp"))
 	if (is.na(method.int)) stop("Invalid method")

@@ -50,7 +50,7 @@ typedef struct cptable {
 *      split point: the actual split point for a continuous
 *
 *      improve:  For primary splits, the iprovement index returned by the
-*                 bsplit routine.  This is the measure that determines the
+*                 create_primary_split_list routine.  This is the measure that determines the
 *                 winning split.
 *                For surrogate splits, this holds the error rate, i.e., the
 *                 % incorrect guesses of the primary by using this surrogate.

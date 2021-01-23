@@ -14,6 +14,8 @@
 #define _(String) (String)
 #endif
 
+#include "node.h"
+
 
 static int ysave;               /* number of columns of y  */
 static int rsave;               /* the length of the returned "mean" from the
@@ -21,6 +23,10 @@ static int rsave;               /* the length of the returned "mean" from the
 static SEXP expr1;              /* the evaluation expression for splits */
 static SEXP expr2;              /* the evaluation expression for values */
 static SEXP rho;
+
+static SEXP split_choice_function;
+static SEXP split_choice_threshold;
+static SEXP column_names;
 
 static double *ydata;           /* pointer to the data portion of yback */
 static double *xdata;           /* pointer to the data portion of xback */
@@ -32,6 +38,7 @@ static int *ndata;              /* pointer to the data portion of nback */
  *   of the evaluation frame and the 2 expressions to be computed within it,
  *   and away the memory location of the 4 "callback" objects.
  */
+
 SEXP
 init_rpcallback(SEXP rhox, SEXP ny, SEXP nr, SEXP expr1x, SEXP expr2x)
 {
@@ -61,6 +68,58 @@ init_rpcallback(SEXP rhox, SEXP ny, SEXP nr, SEXP expr1x, SEXP expr2x)
     ndata = INTEGER(stemp);
 
     return R_NilValue;
+}
+
+
+SEXP init_split_choice_function(SEXP function, SEXP threshold, SEXP col_names) 
+{
+	split_choice_function = function;
+	split_choice_threshold = threshold;
+	column_names = col_names;
+	PrintValue(column_names);
+
+	return R_NilValue;
+}
+
+Split* pick_split(Node* node)
+{
+
+	double threshold = asReal(split_choice_threshold);
+	int list_length = 0;
+	for (Split *current = node->primary; current != NULL; current = current->nextsplit)
+		if(current->improvment > threshold)
+			list_length++;
+
+	SEXP r_callback_arg_names = PROTECT(allocVector(STRSXP, list_length));
+	SEXP r_callback_arg_improvments = PROTECT(allocVector(REALSXP, list_length));
+
+	int index = 0;
+	for(Split *current = node->primary; current != NULL; current = current->nextsplit)
+		if(current->improvment > threshold)
+		{
+			SEXP name = PROTECT(STRING_ELT(column_names, current->var_num));
+			PrintValue(name);
+
+			SET_STRING_ELT(r_callback_arg_names, index, name);
+			REAL(r_callback_arg_improvments)[index] = current->improvment;
+			index++;
+		}
+	SEXP expression = PROTECT(lang3(split_choice_function,r_callback_arg_names, r_callback_arg_improvments));
+
+
+
+	SEXP result = eval(expression, R_GlobalEnv);
+
+	int splitIndex = asInteger(eval(match(r_callback_arg_names, result, 0), R_GlobalEnv));
+
+	index = 0;
+	for(Split *current = node->primary; current != NULL; current = current->nextsplit)
+		if(current->improvment > threshold)
+			if(index == splitIndex)
+				return current;
+			else
+				index++;
+
 }
 
 /*

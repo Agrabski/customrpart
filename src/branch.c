@@ -16,69 +16,75 @@
 #include "node.h"
 #include "rpartproto.h"
 
-pNode
-branch(pNode tree, int obs)
+pNode branch(pNode tree, int obs)
 {
-    int j, dir;
-    int category;               /* for categorical variables */
-    pNode me;
-    Split* tsplit;
-    double **xdata;
+	int j, dir;
+	int category; /* for categorical variables */
+	pNode me;
+	Split *tsplit;
+	double **xdata;
 
-    if (!tree->leftson) return NULL;
+	if (!tree->leftson)
+		return NULL;
 
-    me = tree;
-    xdata = rp.xdata;
+	me = tree;
+	xdata = rp.xdata;
 
-   /*
+	/*
     * choose left or right son
     *   this may use lots of surrogates before we're done
     */
-    tsplit = me->primary;
-    j = tsplit->var_num;
-    if (R_FINITE(xdata[j][obs])) {
-	if (rp.variable_types[j] == 0) {        /* continuous */
-	    dir = (xdata[j][obs] < tsplit->spoint) ?
-		tsplit->csplit[0] : -tsplit->csplit[0];
-	    goto down;
-	} else {                /* categorical predictor */
-	    category = (int) xdata[j][obs];     /* factor predictor -- which
+	tsplit = me->primary;
+	j = tsplit->var_num;
+	if (R_FINITE(xdata[j][obs]))
+	{
+		if (rp.variable_types[j] == 0)
+		{ /* continuous */
+			dir = (xdata[j][obs] < tsplit->spoint) ? tsplit->csplit[0] : -tsplit->csplit[0];
+			goto down;
+		}
+		else
+		{								   /* categorical predictor */
+			category = (int)xdata[j][obs]; /* factor predictor -- which
 						 * level? */
-	    dir = (tsplit->csplit)[category - 1];
-	    if (dir)
-		goto down;
+			dir = (tsplit->csplit)[category - 1];
+			if (dir)
+				goto down;
+		}
 	}
-    }
-    if (rp.usesurrogate == 0)
-	return NULL;
-   /*
+	if (rp.usesurrogate == 0)
+		return NULL;
+	/*
     * use the surrogates
     */
-    for (tsplit = me->surrogate; tsplit; tsplit = tsplit->nextsplit) {
-	j = tsplit->var_num;
-	if (R_FINITE(xdata[j][obs])) {  /* not missing */
-	    if (rp.variable_types[j] == 0) {
-		dir = (rp.xdata[j][obs] < tsplit->spoint) ?
-		    tsplit->csplit[0] : -tsplit->csplit[0];
-		goto down;
-	    } else {
-		category = (int) xdata[j][obs]; /* factor predictor -- which
+	for (tsplit = me->surrogate; tsplit; tsplit = tsplit->nextsplit)
+	{
+		j = tsplit->var_num;
+		if (R_FINITE(xdata[j][obs]))
+		{ /* not missing */
+			if (rp.variable_types[j] == 0)
+			{
+				dir = (rp.xdata[j][obs] < tsplit->spoint) ? tsplit->csplit[0] : -tsplit->csplit[0];
+				goto down;
+			}
+			else
+			{
+				category = (int)xdata[j][obs]; /* factor predictor -- which
 						 * level */
-		dir = (tsplit->csplit)[category - 1];
-		if (dir)
-		    goto down;
-	    }
+				dir = (tsplit->csplit)[category - 1];
+				if (dir)
+					goto down;
+			}
+		}
 	}
-    }
 
-
-    if (rp.usesurrogate < 2)
-	return NULL;
-    /*
+	if (rp.usesurrogate < 2)
+		return NULL;
+	/*
      * split it by default
      */
-    dir = me->lastsurrogate;
+	dir = me->lastsurrogate;
 
 down:
-    return (dir == LEFT) ? me->leftson : me->rightson;
+	return (dir == LEFT) ? me->leftson : me->rightson;
 }
