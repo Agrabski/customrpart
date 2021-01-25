@@ -3,10 +3,10 @@
 #
 rpart <-
     function(formula, data, weights, subset, na.action = na.rpart, method,
-             model = FALSE, x = FALSE, y = TRUE, parms, control, cost, split_pick_function, split_pick_threshold, ...)
+             model = FALSE, x = FALSE, y = TRUE, parms, control, cost, split_pick_function = function(x,y){result = x[1];}, split_pick_threshold = 0, ...)
 {
 	if(!is.null(split_pick_function ))
-		.Call(C_init_split_choice_function, split_pick_function, split_pick_threshold, colnames(data));
+		.Call(C_init_split_choice_function, split_pick_function, split_pick_threshold, all.vars(formula)[-1]);
 
     Call <- match.call()
     if (is.data.frame(model)) {

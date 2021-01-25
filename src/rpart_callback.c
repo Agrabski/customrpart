@@ -117,7 +117,7 @@ Split* pick_split(Node* node)
 		if(current->improvment > threshold)
 			if(index == splitIndex)
 			{
-				UNPROTECT(protections);
+				//UNPROTECT(protections);
 				return current;
 			}
 			else
