@@ -71,18 +71,18 @@ init_rpcallback(SEXP rhox, SEXP ny, SEXP nr, SEXP expr1x, SEXP expr2x)
 }
 
 
-SEXP init_split_choice_function(SEXP function, SEXP threshold, SEXP col_names) 
+SEXP init_split_choice_function(SEXP function, SEXP threshold, SEXP col_names)
 {
 	split_choice_function = function;
 	split_choice_threshold = threshold;
 	column_names = col_names;
-	PrintValue(column_names);
 
 	return R_NilValue;
 }
 
 Split* pick_split(Node* node)
 {
+	int protections = 3;
 
 	double threshold = asReal(split_choice_threshold);
 	int list_length = 0;
@@ -98,10 +98,10 @@ Split* pick_split(Node* node)
 		if(current->improvment > threshold)
 		{
 			SEXP name = PROTECT(STRING_ELT(column_names, current->var_num));
-			PrintValue(name);
 
 			SET_STRING_ELT(r_callback_arg_names, index, name);
 			REAL(r_callback_arg_improvments)[index] = current->improvment;
+			protections += 1;
 			index++;
 		}
 	SEXP expression = PROTECT(lang3(split_choice_function,r_callback_arg_names, r_callback_arg_improvments));
@@ -116,7 +116,10 @@ Split* pick_split(Node* node)
 	for(Split *current = node->primary; current != NULL; current = current->nextsplit)
 		if(current->improvment > threshold)
 			if(index == splitIndex)
+			{
+				UNPROTECT(protections);
 				return current;
+			}
 			else
 				index++;
 

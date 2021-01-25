@@ -90,18 +90,19 @@ int partition(int nodenum, pNode splitnode, double *sumrisk, int n1, int n2)
 		Split *selected_split = pick_split(me);
 		Split *before_selected = NULL;
 		for (
-		before_selected = me->primary;
-		before_selected!= NULL && before_selected->nextsplit != selected_split ;
-		before_selected = before_selected->nextsplit) {
-
+			before_selected = me->primary;
+			before_selected != NULL && before_selected->nextsplit != selected_split;
+			before_selected = before_selected->nextsplit)
+		{
 		}
-		if (before_selected!=NULL && before_selected->nextsplit == selected_split) {
+		if (before_selected != NULL && before_selected->nextsplit == selected_split)
+		{
 			before_selected->nextsplit = selected_split->nextsplit;
 			selected_split->nextsplit = me->primary;
 			me->primary = selected_split;
 		}
 	}
-	
+
 #ifdef DEBUG
 	//print_tree(me, 2);
 #endif

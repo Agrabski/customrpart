@@ -2,8 +2,8 @@ rpart(Kyphosis ~ Age + Number + Start, data = kyphosis, split_pick_function =  f
 	print(x);
 	print(y)
 
-	result = x;
-	}, split_pick_threshold = 5)
+	result = x[1];
+	}, split_pick_threshold = 0)
 
 
 
